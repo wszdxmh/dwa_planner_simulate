@@ -1,0 +1,20 @@
+# MATLAB autosave files
+*.asv
+*.autosave
+
+# MATLAB figures
+*.fig
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+.claude/

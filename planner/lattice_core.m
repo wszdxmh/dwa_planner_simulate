@@ -15,20 +15,33 @@ function [best_v, best_w, best_traj, min_cost, all_trajs] = lattice_core(state, 
     % Build sampling grid in robot frame
     long_dists = p.lattice.longitudinal_dists;
     lat_base = linspace(-p.lattice.lateral_range, p.lattice.lateral_range, p.lattice.num_lateral);
-    heading_offsets = linspace(-p.lattice.heading_range, p.lattice.heading_range, p.lattice.num_headings);
 
-    % Bias lateral sampling toward global path to improve path tracking
+    % Bias lateral and heading sampling toward global path
     lat_bias = 0;
+    heading_bias = 0;
     if ~isempty(global_path) && size(global_path, 1) > 1
-        dists = hypot(global_path(:,1) - robot_pose(1), global_path(:,2) - robot_pose(2));
+        % Lateral bias: shift sampling center toward nearest path point
+        dists = hypot(global_path(:,1)-robot_pose(1), global_path(:,2)-robot_pose(2));
         [~, nearest_idx] = min(dists);
         nearest_pt = global_path(nearest_idx, :);
-        % Lateral offset in robot frame: >0 means path is to robot's left
         vec = nearest_pt - robot_pose(1:2);
-        lat_bias = -sin(robot_pose(3)) * vec(1) + cos(robot_pose(3)) * vec(2);
-        lat_bias = max(-p.lattice.lateral_range * 0.8, min(p.lattice.lateral_range * 0.8, lat_bias));
+        lat_bias = -sin(robot_pose(3))*vec(1) + cos(robot_pose(3))*vec(2);
+        lat_bias = max(-p.lattice.lateral_range*0.8, min(p.lattice.lateral_range*0.8, lat_bias));
+
+        % Heading bias: prefer end headings aligned with path direction at lookahead
+        dists_t = hypot(global_path(:,1)-target_xy(1), global_path(:,2)-target_xy(2));
+        [~, target_idx] = min(dists_t);
+        if target_idx < size(global_path,1)
+            path_dir = global_path(target_idx+1,:) - global_path(target_idx,:);
+        else
+            path_dir = global_path(target_idx,:) - global_path(target_idx-1,:);
+        end
+        heading_bias = atan2(path_dir(2), path_dir(1)) - robot_pose(3);
+        heading_bias = normalize_angle(heading_bias);
+        heading_bias = max(-p.lattice.heading_range*0.6, min(p.lattice.heading_range*0.6, heading_bias));
     end
     lat_offsets = lat_base + lat_bias;
+    heading_offsets = linspace(-p.lattice.heading_range, p.lattice.heading_range, p.lattice.num_headings) + heading_bias;
 
     n_candidates = length(long_dists) * length(lat_offsets) * length(heading_offsets);
     all_trajs = cell(n_candidates, 1);
@@ -67,7 +80,7 @@ function [best_v, best_w, best_traj, min_cost, all_trajs] = lattice_core(state, 
                                             + p.costs.heading * costs.heading ...
                                             + p.costs.speed   * costs.speed ...
                                             + p.costs.obstacle * costs.obstacle ...
-                                            + p.costs.path    * costs.path;
+                                            + p.lattice.path_weight * costs.path;
                 end
             end
         end

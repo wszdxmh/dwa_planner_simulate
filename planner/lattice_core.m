@@ -14,8 +14,21 @@ function [best_v, best_w, best_traj, min_cost, all_trajs] = lattice_core(state, 
 
     % Build sampling grid in robot frame
     long_dists = p.lattice.longitudinal_dists;
-    lat_offsets = linspace(-p.lattice.lateral_range, p.lattice.lateral_range, p.lattice.num_lateral);
+    lat_base = linspace(-p.lattice.lateral_range, p.lattice.lateral_range, p.lattice.num_lateral);
     heading_offsets = linspace(-p.lattice.heading_range, p.lattice.heading_range, p.lattice.num_headings);
+
+    % Bias lateral sampling toward global path to improve path tracking
+    lat_bias = 0;
+    if ~isempty(global_path) && size(global_path, 1) > 1
+        dists = hypot(global_path(:,1) - robot_pose(1), global_path(:,2) - robot_pose(2));
+        [~, nearest_idx] = min(dists);
+        nearest_pt = global_path(nearest_idx, :);
+        % Lateral offset in robot frame: >0 means path is to robot's left
+        vec = nearest_pt - robot_pose(1:2);
+        lat_bias = -sin(robot_pose(3)) * vec(1) + cos(robot_pose(3)) * vec(2);
+        lat_bias = max(-p.lattice.lateral_range * 0.8, min(p.lattice.lateral_range * 0.8, lat_bias));
+    end
+    lat_offsets = lat_base + lat_bias;
 
     n_candidates = length(long_dists) * length(lat_offsets) * length(heading_offsets);
     all_trajs = cell(n_candidates, 1);

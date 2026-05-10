@@ -64,12 +64,12 @@ function p = dwa_params()
 
     %% Lattice规划参数
     p.lattice.num_longitudinal = 3;
-    p.lattice.longitudinal_dists = [1.0, 2.0, 3.0];
+    p.lattice.longitudinal_dists = [0.8, 1.5, 2.0];
     p.lattice.num_lateral = 7;
     p.lattice.lateral_range = 0.9;
     p.lattice.num_headings = 3;
     p.lattice.heading_range = pi/6;
     p.lattice.target_velocity = 0.30;
-    p.lattice.n_samples = 30;
+    p.lattice.n_samples = 25;
     p.lattice.path_weight = 5.0;     % 路径贴合权重 (替代共享的0.4, 配合3点采样)
 end

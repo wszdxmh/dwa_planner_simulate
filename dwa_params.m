@@ -37,6 +37,8 @@ function p = dwa_params()
     %% 障碍物检测参数
     p.obstacle.filter_radius  = 1.5;    % 障碍物检测半径 (m), 太大导致无谓减速
     p.obstacle.robot_radius   = 0.17;
+    p.obstacle.safe_distance  = 0.5;    % 安全距离, 超过此距离障碍物代价为0
+    p.obstacle.decay_factor   = 5.0;    % 指数衰减系数 (越大越陡)
 
     %% 仿真参数
     p.sim.max_frames          = 500;

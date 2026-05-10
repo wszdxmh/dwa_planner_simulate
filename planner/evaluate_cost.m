@@ -47,8 +47,11 @@ function [costs, infeasible] = evaluate_cost(traj, candidate_v, laser_pts, targe
         costs.obstacle = inf;
     elseif isinf(obs_min)
         costs.obstacle = 0;
+    elseif obs_min < p.obstacle.safe_distance
+        % 指数衰减：从半径处≈1 衰减到安全距离处≈0
+        costs.obstacle = exp(-p.obstacle.decay_factor * (obs_min - p.robot.radius));
     else
-        costs.obstacle = 1.0 / max(obs_min, 0.01);
+        costs.obstacle = 0;
     end
 
     % 5. 路径偏离代价：轨迹终点到全局平滑路径的最短距离

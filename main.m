@@ -12,7 +12,7 @@ p = dwa_params();
 scene_name = 'cluttered';
 
 % 选择规划器: 'dwa' | 'lattice'
-planner_type = 'dwa';
+planner_type = 'lattice';
 
 %% 构建环境和全局路径
 fprintf('=== 场景: %s ===\n', scene_name);

@@ -81,7 +81,7 @@ function result = run_simulation(p, env, do_visualize, planner_type)
         % 检查是否到达目标
         if log.dist_to_goal(t) < p.sim.goal_tolerance
             fprintf('到达目标! 帧: %d, 时间: %.2fs\n', t, log.time(t));
-            result = pack_result(log, waypoints, smoothed_path, p, env, t);
+            result = pack_result(log, waypoints, smoothed_path, p, env, t, planner_type);
             return;
         end
 
@@ -142,7 +142,7 @@ function result = run_simulation(p, env, do_visualize, planner_type)
                 lookahead_pt, waypoints, smoothed_path, current_wp_idx, t, planner_type);
             if ~keep_running
                 fprintf('用户关闭了可视化窗口 (帧 %d)\n', t);
-                result = pack_result(log, waypoints, smoothed_path, p, env, t);
+                result = pack_result(log, waypoints, smoothed_path, p, env, t, planner_type);
                 return;
             end
         end
@@ -184,7 +184,7 @@ function lookahead_pt = compute_lookahead(robot_xy, robot_th, path, lookahead_di
     % 路径终点也不够远 → 锁定终点，不再延伸
 end
 
-function result = pack_result(log, waypoints, smoothed_path, p, env, n_frames)
+function result = pack_result(log, waypoints, smoothed_path, p, env, n_frames, planner_type)
     result.log = struct();
     fns = fieldnames(log);
     for i = 1:length(fns)

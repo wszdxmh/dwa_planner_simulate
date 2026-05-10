@@ -13,11 +13,11 @@ function p = dwa_params()
     p.robot.wheel_separation  = 0.30;    % 差速轮轮距 (m)
 
     %% DWA规划参数
-    p.dwa.sim_time            = 2.0;
+    p.dwa.sim_time            = 1.5;
     p.dwa.dt                  = 0.2;
     p.dwa.mhz                 = 10.0;
-    p.dwa.velocity_res        = 0.05;
-    p.dwa.omega_res           = 0.05;
+    p.dwa.velocity_res        = 0.10;
+    p.dwa.omega_res           = 0.10;
 
     %% 代价函数权重
     p.costs.to_goal           = 10.0;
@@ -70,6 +70,6 @@ function p = dwa_params()
     p.lattice.num_headings = 3;
     p.lattice.heading_range = pi/6;
     p.lattice.target_velocity = 0.30;
-    p.lattice.n_samples = 50;
+    p.lattice.n_samples = 30;
     p.lattice.path_weight = 5.0;     % 路径贴合权重 (替代共享的0.4, 配合3点采样)
 end

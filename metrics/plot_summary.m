@@ -13,6 +13,8 @@ function plot_summary(result)
 
     figure('Name', 'Simulation Summary', 'NumberTitle', 'off', 'Position', [100, 100, 900, 700]);
 
+    if isfield(result, 'planner_type'), pt_label = upper(result.planner_type); else, pt_label = 'DWA'; end
+
     % 1. 机器人轨迹 (地图 + A*路径 + 贝塞尔平滑 + 实际路径)
     subplot(2, 3, 1);
     env = result.env;
@@ -29,7 +31,7 @@ function plot_summary(result)
         plot(result.smoothed_path(:,1), result.smoothed_path(:,2), 'c-', 'LineWidth', 2, ...
             'DisplayName', '贝塞尔平滑路径');
     end
-    plot(pose(:,1), pose(:,2), 'g-', 'LineWidth', 2, 'DisplayName', 'DWA 实际路径');
+    plot(pose(:,1), pose(:,2), 'g-', 'LineWidth', 2, 'DisplayName', [pt_label ' 实际路径']);
     plot(pose(1,1), pose(1,2), 'go', 'MarkerSize', 8, 'MarkerFaceColor', 'g', 'DisplayName', '起点');
     plot(env.target(1), env.target(2), 'r*', 'MarkerSize', 12, 'DisplayName', '终点');
     axis equal; xlim(env.bounds(1:2)); ylim(env.bounds(3:4));
@@ -66,14 +68,14 @@ function plot_summary(result)
     subplot(2, 3, 4);
     plot(time, plan_t*1000, 'k-', 'LineWidth', 1);
     xlabel('时间 (s)'); ylabel('规划时间 (ms)');
-    title(sprintf('DWA规划耗时 (均值: %.1fms)', mean(plan_t)*1000));
+    title(sprintf('%s规划耗时 (均值: %.1fms)', pt_label, mean(plan_t)*1000));
     grid on;
 
     % 5. 代价变化
     subplot(2, 3, 5);
     plot(time, cost, 'm-', 'LineWidth', 1);
     xlabel('时间 (s)'); ylabel('最小代价');
-    title('DWA代价变化');
+    title([pt_label '代价变化']);
     grid on;
 
     % 6. waypoint 索引

@@ -76,11 +76,22 @@ function [best_v, best_w, best_traj, min_cost, all_trajs] = lattice_core(state, 
 
                 [costs, infeasible] = evaluate_cost(traj, v_eq, laser_pts, target_xy, robot_pose, p, global_path);
                 if ~infeasible
+                    % Multi-point path deviation: check 3 points along trajectory
+                    path_dev = costs.path;  % endpoint deviation (from evaluate_cost)
+                    if ~isempty(global_path) && size(global_path,1) > 1
+                        for ci = [round(size(traj,1)/3), round(2*size(traj,1)/3)]
+                            pt = traj(ci, 1:2);
+                            d = min(hypot(global_path(:,1)-pt(1), global_path(:,2)-pt(2)));
+                            path_dev = path_dev + d;
+                        end
+                        path_dev = path_dev / 3;  % average over 3 checkpoints
+                    end
+
                     all_weighted_costs(idx) = p.costs.to_goal * costs.to_goal ...
                                             + p.costs.heading * costs.heading ...
                                             + p.costs.speed   * costs.speed ...
                                             + p.costs.obstacle * costs.obstacle ...
-                                            + p.lattice.path_weight * costs.path;
+                                            + p.lattice.path_weight * path_dev;
                 end
             end
         end

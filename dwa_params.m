@@ -71,5 +71,5 @@ function p = dwa_params()
     p.lattice.heading_range = pi/6;
     p.lattice.target_velocity = 0.30;
     p.lattice.n_samples = 50;
-    p.lattice.path_weight = 3.0;     % 路径贴合权重 (替代默认的0.4)
+    p.lattice.path_weight = 5.0;     % 路径贴合权重 (替代共享的0.4, 配合3点采样)
 end

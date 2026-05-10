@@ -9,6 +9,11 @@ function m = compute_metrics(result)
 
     m = struct();
     m.success = result.success;
+    if isfield(result, 'planner_type')
+        m.planner_type = result.planner_type;
+    else
+        m.planner_type = 'dwa';
+    end
     m.n_frames = n;
     m.total_time = result.log.time(n);
 

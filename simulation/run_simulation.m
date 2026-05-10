@@ -1,6 +1,10 @@
-function result = run_simulation(p, env, do_visualize)
-% 主仿真循环: A*全局规划 + 贝塞尔平滑 + 纯追踪预瞄 + DWA局部跟踪
+function result = run_simulation(p, env, do_visualize, planner_type)
+% 主仿真循环: A*全局规划 + 贝塞尔平滑 + 纯追踪预瞄 + DWA/Lattice局部跟踪
 %   result = 仿真结果结构体
+
+    if nargin < 4
+        planner_type = 'dwa';
+    end
 
     addpath(genpath(fileparts(mfilename('fullpath'))));
 
@@ -85,9 +89,13 @@ function result = run_simulation(p, env, do_visualize)
         [laser_pts, ~] = sensor_raycast(state(1:3), env.map, p);
         log.laser_pts_cell{t} = laser_pts;
 
-        % 规划：DWA局部规划 (目标=预瞄点)
+        % 规划：局部规划 (目标=预瞄点)
         tic_plan = tic;
-        [v_cmd, w_cmd, best_traj, min_cost, all_trajs] = dwa_core(state, laser_pts, lookahead_pt, p, smoothed_path);
+        if strcmp(planner_type, 'lattice')
+            [v_cmd, w_cmd, best_traj, min_cost, all_trajs] = lattice_core(state, laser_pts, lookahead_pt, p, smoothed_path);
+        else
+            [v_cmd, w_cmd, best_traj, min_cost, all_trajs] = dwa_core(state, laser_pts, lookahead_pt, p, smoothed_path);
+        end
         log.plan_time(t) = toc(tic_plan);
         log.min_cost(t) = min_cost;
         log.best_traj_cell{t} = best_traj;
@@ -131,7 +139,7 @@ function result = run_simulation(p, env, do_visualize)
         % 可视化
         if do_visualize
             keep_running = animate_frame(p, env, state, laser_pts, all_trajs, best_traj, ...
-                lookahead_pt, waypoints, smoothed_path, current_wp_idx, t);
+                lookahead_pt, waypoints, smoothed_path, current_wp_idx, t, planner_type);
             if ~keep_running
                 fprintf('用户关闭了可视化窗口 (帧 %d)\n', t);
                 result = pack_result(log, waypoints, smoothed_path, p, env, t);
@@ -193,4 +201,5 @@ function result = pack_result(log, waypoints, smoothed_path, p, env, n_frames)
     result.env = env;
     result.n_frames = n_frames;
     result.success = result.log.dist_to_goal(end) < p.sim.goal_tolerance;
+    result.planner_type = planner_type;
 end

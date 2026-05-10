@@ -4,20 +4,37 @@ clear; clc;
 addpath(genpath(fileparts(mfilename('fullpath'))));
 
 %% 扫描参数定义
-sweep_params = {
+% DWA扫描参数
+dwa_sweep_params = {
     'to_goal',  [2, 5, 10, 15, 20, 30];
     'speed',    [1, 2, 3, 5, 8];
     'obstacle', [2, 4, 6, 8, 12];
     'heading',  [5, 10, 20, 30, 50];
 };
 
-param_names = {'costs.to_goal', 'costs.speed', 'costs.obstacle', 'costs.heading'};
+% Lattice扫描参数
+lattice_sweep_params = {
+    'longitudinal', [0.5, 1.0, 1.5, 2.0, 2.5];
+    'lateral_range', [0.3, 0.6, 0.9, 1.2];
+    'heading_range', [pi/12, pi/6, pi/4, pi/3];
+    'target_vel', [0.1, 0.2, 0.3, 0.4];
+};
+
+if strcmp(planner_type, 'lattice')
+    sweep_params = lattice_sweep_params;
+    param_names = {'lattice.longitudinal', 'lattice.lateral_range', 'lattice.heading_range', 'lattice.target_vel'};
+    param_labels = {'longitudinal', 'lateral\_range', 'heading\_range', 'target\_vel'};
+else
+    sweep_params = dwa_sweep_params;
+    param_names = {'costs.to_goal', 'costs.speed', 'costs.obstacle', 'costs.heading'};
+    param_labels = {'to\_goal', 'speed', 'obstacle', 'heading'};
+end
 
 %% 选择要扫描的参数
-fprintf('=== DWA 参数敏感度分析 ===\n');
-fprintf('扫描参数: to_goal, speed, obstacle, heading\n\n');
+fprintf('=== %s 参数敏感度分析 ===\n', upper(planner_type));
 
 scene_name = 'simple';  % 使用simple场景
+planner_type = 'dwa';  % 'dwa' | 'lattice'
 do_vis = false;
 
 % 基准参数
@@ -37,15 +54,24 @@ for pi = 1:length(param_names)
     for vi = 1:n_vals
         p = p_base;
         % 动态设置参数
-        switch pi
-            case 1, p.costs.to_goal = vals(vi);
-            case 2, p.costs.speed = vals(vi);
-            case 3, p.costs.obstacle = vals(vi);
-            case 4, p.costs.heading = vals(vi);
+        if strcmp(planner_type, 'lattice')
+            switch pi
+                case 1, p.lattice.longitudinal_dists = [vals(vi), vals(vi)*2, vals(vi)*3];
+                case 2, p.lattice.lateral_range = vals(vi);
+                case 3, p.lattice.heading_range = vals(vi);
+                case 4, p.lattice.target_velocity = vals(vi);
+            end
+        else
+            switch pi
+                case 1, p.costs.to_goal = vals(vi);
+                case 2, p.costs.speed = vals(vi);
+                case 3, p.costs.obstacle = vals(vi);
+                case 4, p.costs.heading = vals(vi);
+            end
         end
 
         env = setup_environment(scene_name, p);
-        result = run_simulation(p, env, do_vis);
+        result = run_simulation(p, env, do_vis, planner_type);
         m = compute_metrics(result);
 
         metrics_arr(vi).value = vals(vi);
@@ -69,8 +95,6 @@ figure('Name', 'Parameter Sensitivity', 'NumberTitle', 'off', 'Position', [100, 
 
 metric_labels = {'路径长度 (m)', '目标误差 (m)', '路径平滑度', '最小安全距离 (m)', '平均规划时间 (ms)'};
 metric_fields = {'path_length', 'goal_error', 'smoothness', 'min_clearance', 'avg_plan_time'};
-param_labels = {'to\_goal', 'speed', 'obstacle', 'heading'};
-x_label_str = {'代价权重', '代价权重', '代价权重', '代价权重'};
 
 for mi = 1:length(metric_fields)
     subplot(2, 3, mi);
@@ -106,6 +130,6 @@ title('成功率');
 legend('Location', 'best');
 grid on;
 
-sgtitle(sprintf('DWA参数敏感度分析 - 场景: %s', scene_name));
+sgtitle(sprintf('%s参数敏感度分析 - 场景: %s', upper(planner_type), scene_name));
 
 fprintf('\n分析完成。查看图表窗口。\n');

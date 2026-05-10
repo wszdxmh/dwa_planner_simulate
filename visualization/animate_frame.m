@@ -1,6 +1,7 @@
 function keep_running = animate_frame(p, env, state, laser_pts, all_trajs, best_traj, ...
-        lookahead_pt, waypoints, smoothed_path, wp_idx, frame_num)
+        lookahead_pt, waypoints, smoothed_path, wp_idx, frame_num, planner_type)
 % 渲染单帧，返回 keep_running = false 表示用户关闭了窗口
+    if nargin < 12, planner_type = 'dwa'; end
     persistent fig_handle ax_handle trail_x trail_y;
 
     % 检查用户是否关闭了窗口 (通过root appdata通信)
@@ -106,7 +107,8 @@ function keep_running = animate_frame(p, env, state, laser_pts, all_trajs, best_
     plot(ax_handle, trail_x, trail_y, 'g-', 'LineWidth', 1.5);
 
     % --- 图例与标题 ---
-    title_str = sprintf('Frame: %d | v=%.2fm/s  w=%.2frad/s | 预瞄→绿◇ | V_R=%.2f V_L=%.2f', ...
+    title_str = sprintf('[%s] Frame: %d | v=%.2fm/s  w=%.2frad/s | 预瞄→绿◇ | V_R=%.2f V_L=%.2f', ...
+        upper(planner_type), ...
         frame_num, state(4), state(5), ...
         state(4) + state(5)*d/2, state(4) - state(5)*d/2);
     title(ax_handle, title_str);

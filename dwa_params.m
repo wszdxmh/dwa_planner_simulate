@@ -59,4 +59,14 @@ function p = dwa_params()
     %% 仿真速度控制
     p.sim.pause_time          = 0.0025;     % 帧间暂停 (s), 越小越快
     p.sim.traj_display_stride = 1;        % 轨迹束显示间隔 (1=全部, 越大越快)
+
+    %% Lattice规划参数
+    p.lattice.num_longitudinal = 3;
+    p.lattice.longitudinal_dists = [1.0, 2.0, 3.0];
+    p.lattice.num_lateral = 7;
+    p.lattice.lateral_range = 0.9;
+    p.lattice.num_headings = 3;
+    p.lattice.heading_range = pi/6;
+    p.lattice.target_velocity = 0.30;
+    p.lattice.n_samples = 50;
 end

@@ -11,6 +11,9 @@ p = dwa_params();
 % 选择场景: 'empty' | 'simple' | 'cluttered' | 'corridor' | 'dynamic'
 scene_name = 'cluttered';
 
+% 选择规划器: 'dwa' | 'lattice'
+planner_type = 'dwa';
+
 %% 构建环境和全局路径
 fprintf('=== 场景: %s ===\n', scene_name);
 env = setup_environment(scene_name, p);
@@ -18,10 +21,10 @@ env = setup_environment(scene_name, p);
 %% 运行仿真
 do_vis = true;  % 是否可视化
 if isappdata(0, 'dwa_fig_closed'), rmappdata(0, 'dwa_fig_closed'); end
-result = run_simulation(p, env, do_vis);
+result = run_simulation(p, env, do_vis, planner_type);
 
 %% 后处理评估
-fprintf('\n=== 仿真结果 ===\n');
+fprintf('\n=== 仿真结果 [%s] ===\n', planner_type);
 if result.success, status_str = '是'; else, status_str = '否'; end
 fprintf('是否成功: %s\n', status_str);
 fprintf('最终距离目标: %.3f m\n', result.log.dist_to_goal(end));

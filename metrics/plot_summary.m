@@ -83,5 +83,9 @@ function plot_summary(result)
     title(sprintf('Waypoint 跟踪进度 (%d/%d)', wp_idx(end), size(result.waypoints,1)));
     grid on;
 
-    sgtitle(result.env.name);
+    if isfield(result, 'planner_type')
+        sgtitle(sprintf('%s [%s]', result.env.name, upper(result.planner_type)));
+    else
+        sgtitle(result.env.name);
+    end
 end
